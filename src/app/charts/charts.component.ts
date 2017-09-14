@@ -38,9 +38,9 @@ export class ChartsComponent implements OnInit {
 
 
     var parseDate = d3.timeParse("%Y-%m-%dT%H:%M:%S");
-    this.chartData.map(prvi => {
-      prvi.values.map(drugi => {
-        drugi.date = parseDate(drugi.date)
+    this.chartData.map(oneChart => {
+      oneChart.values.map(values => {
+        values.date = parseDate(values.date)
       })
     })
 
@@ -52,7 +52,7 @@ export class ChartsComponent implements OnInit {
     };
 
     this.width = 1200 - this.margin.left - this.margin.right,
-      this.height = this.width * 0.66 - this.margin.top - this.margin.bottom;
+    this.height = this.width * 0.66 - this.margin.top - this.margin.bottom;
 
     var barRawWidth = this.width / (this.chartData[0].values.length + 2);
     var barPadding = 1,
@@ -71,12 +71,8 @@ export class ChartsComponent implements OnInit {
 
       minYRight = + d3.min(this.chartData[0].values.map(d => d.temperature)),
 
-      maxYRight = + d3.max(this.chartData[0].values.map(d => d.temperature)),
+      maxYRight = + d3.max(this.chartData[0].values.map(d => d.temperature))
 
-      k = maxYLeft / maxYRight,
-      //Math.abs(maxYRight - maxYLeft)/Math.abs(minYRight-minYLeft),
-
-      n = minYRight;
 
     var zoom = d3.zoom()
       .scaleExtent([1, 15])
@@ -133,7 +129,6 @@ export class ChartsComponent implements OnInit {
 
     var yAxisRight = d3.axisRight(y2)
 
-    //.ticks(20);
 
     this.gx = svg.append('g')
       .attr("class", "x axis")
@@ -160,14 +155,11 @@ export class ChartsComponent implements OnInit {
       .attr("transform", "translate(" + (this.width - this.margin.right) + ", 0 )")
       .call(yAxisRight)
       .append("text")
+      .attr("transform", 'translate('+this.width+','+this.height/2+")rotate(-90)")
       .text("Vrednosti 2")
-      .attr('dx', '.2em')
-      .style("text-anchor", "start")
+     // .style("text-anchor", "start")
       .style("font-size", '20px')
-      .attr("y", 0 - (this.height / 2))
-      .attr('x', 0)
-      .attr('dy', '-.1em')
-      .attr("transform", "rotate(-90)")
+      //.attr("transform", 'translate('+this.width+','+this.height/2+")rotate(-90)")
 
 
 
@@ -304,17 +296,15 @@ export class ChartsComponent implements OnInit {
           .attr("transform", (d: any, i) => {
 
             var xDate = x.invert(d3.mouse(this)[0]);
-            var datumi = d.values.map(pod => { return pod.date })
-            //  var temp = d.values.map(pod => { return pod.temperature })
+            var dates = d.values.map(pod => { return pod.date })
+            
             i = 0
-            while (!(datumi[i] < xDate)) {
-              if (i > datumi.length - 1) { break }
+            while (!(dates[i] < xDate)) {
+              if (i > dates.length - 1) { break }
               i++
             }
 
 
-            //var  bisect = d3.bisector( ( d: any) => {return d.date; }).left;
-            //d = d.map( da => { return da.date})
 
             //to i => index is not out of range
             if (i >= d.values.length) { i = d.values.length - 1 }
@@ -322,6 +312,7 @@ export class ChartsComponent implements OnInit {
             let parse2 = d3.timeFormat("%H:%M")
             d3.selectAll('.mouse-per-line text')
               .attr("transform", "translate(0,-20)")
+              .attr('text-anchor', 'end')
               .text((d: any) => {
 
                 return 'Vrednost: ' + d.values[i].temperature + ', ura: ' + parse2(d.values[i].date)
@@ -331,8 +322,8 @@ export class ChartsComponent implements OnInit {
               .style("stroke-width", "0.5px")
               .attr("d", () => {
 
-                this.data = "M" + x(datumi[i]) + "," + visina;
-                this.data += " " + x(datumi[i]) + "," + 0;
+                this.data = "M" + x(dates[i]) + "," + height;
+                this.data += " " + x(dates[i]) + "," + 0;
                 return this.data;
               });
             if (d.name.graph_type.id === 1) {
@@ -347,30 +338,28 @@ export class ChartsComponent implements OnInit {
 
       )
 
-    var visina = this.height,
+    var height = this.height,
         top = this.margin.top,
-        sirina = this.width,
-        left = this.margin.left
-    var chartData = this.chartData;
-  //console.log(chartData)
-    var miska = this.mouse;
-    var bisektor = d3.bisector((d: any) => { return d.date }).right
+        width = this.width,
+        left = this.margin.left,
+        chartData = this.chartData;
+
+
 
     function zoomed(): void {
 
 
       var t = d3.event.transform
       var xt = t.rescaleX(x),
-        yt = d3.scaleLinear(),
-        yt2 = d3.scaleLinear();
-      //vrne prvo vrednost skale
+          yt = d3.scaleLinear(),
+          yt2 = d3.scaleLinear();
 
-//console.log(chartData)
-      var i1 = 0, i2 = chartData[0].values.length - 1;
+
+      var i1 = 0, 
+          i2 = chartData[0].values.length - 1;
+
       while (chartData[0].values[i1].date > xt.domain()[0]) {
-          i1++;
-       // console.log('i1 --->')
-     //   console.log(i1, chartData[0].values[i1])
+        i1++;
         if (i1 > chartData[0].values.length-1) { break }
       }
       while (!(chartData[0].values[i2].date > xt.domain()[1])) {
@@ -397,20 +386,18 @@ export class ChartsComponent implements OnInit {
         return d3.min(d)
       }))
       
-      n = (minYLeft*maxYRight + minYRight*maxYLeft)/ (maxYLeft - minYLeft)
+      var n = (minYLeft*maxYRight + minYRight*maxYLeft)/ (maxYLeft - minYLeft);
 
-      k = (maxYRight- n)/maxYLeft
+      var k = (maxYRight- n)/maxYLeft;
 
 
-      yt.domain([0.9*yMin,1.1* yMax]).range([visina, 0])
-      yt2.domain([yt.domain()[0]*k+n, yt.domain()[1]*k+n]).range([visina, 0])
+      yt.domain([0.9*yMin,1.1* yMax]).range([height, 0])
+      yt2.domain([yt.domain()[0]*k+n, yt.domain()[1]*k+n]).range([height, 0])
       d3.selectAll('.x').call(xAxis.scale(xt));
       d3.selectAll('.y').call(yAxis.scale(yt));
 
       d3.selectAll('.y2').call(yAxisRight.scale(yt2));
 
-      // console.log(d3.event.sourceEvent.x)
-      //console.log(t.invert(x))
 
       var line2 = d3.line()
         .x((d: any) => { return xt(d.date) })
@@ -419,9 +406,9 @@ export class ChartsComponent implements OnInit {
 
 
       svg.selectAll('.barChart')
-        .attr('y', visina)
-        /*             .transition().duration(10) //trajanje
-                    .delay((d, i) => { return i * 10 }) */
+        .attr('y', height)
+                   /*  .transition().duration(10) //trajanje
+                    .delay((d, i) => { return i * 10 })  */
         .attr("x", (d: any) => {
           return (xt(d.date) - (barWidth*t.k )/2);
         })
@@ -429,8 +416,8 @@ export class ChartsComponent implements OnInit {
         .attr("y", (d: any) => { return yt(d.temperature); })
         .attr("height",
         (d: any) => {
-          if ((visina - yt(d.temperature)) > 0) {
-            return visina - yt(d.temperature);
+          if ((height - yt(d.temperature)) > 0) {
+            return height - yt(d.temperature);
           }
           else { return 0 }
         })
@@ -472,50 +459,40 @@ export class ChartsComponent implements OnInit {
       svg.selectAll('.mouse-per-line')
         .append('text')
         .attr("transform", "translate(0,30)")
+        .style('opacity', '0')
 
 
       d3.selectAll('.mouse-over-effects')
       .append('svg:rect') // append a rect to catch mouse movements on canvas
-      .attr('width', sirina) // can't catch mouse events on a g element
-      .attr('height', visina)
+      .attr('width', width) // can't catch mouse events on a g element
+      .attr('height', height)
       .attr('fill', 'none')
       .attr('pointer-events', 'all')
       .on('mousemove', function premik() {
- // mouse moving over canvas
+      // mouse moving over canvas
         d3.selectAll('.mouse-per-line')
-        //.data(chartData)
         .attr("transform",(d: any) => {
-                      //console.log(d,i)
-          
                       var xDate = xt.invert(d3.event.clientX-left);
-                      //var datumi = d.values.map(pod => { return pod.date })
-                      //  var temp = d.values.map(pod => { return pod.temperature })
                       var i = 0
                       while (d.values[i].date >= xDate) { 
                         i++                       
                         if (i >= d.values.length - 1) { break }
                         
                       }
-          
-                      //var  bisect = d3.bisector( ( d: any) => {return d.date; }).left;
-                      //d = d.map( da => { return da.date})
-          
-                      //to i => index is not out of range
-                    //  if (i >= d.values.length) { i = d.values.length -1  }
-                      var idx = i;
+
                       let parse2 = d3.timeFormat("%H:%M")
                       d3.selectAll('.mouse-per-line text')
                         .attr("transform", "translate(0,-20)")
+                        .attr('text-anchor', 'end')
                         .text((d: any) => {
-                         // if (i >= d.values.length) { i = d.values.length -1  }    
                           return 'Vrednost: ' + d.values[i].temperature + ', ura: ' + parse2(d.values[i].date)
                         })
-                        .style("font-size", '14px')
+                        .style('opacity', '1')
           
                       d3.select(".mouse-line")
                         .style("stroke-width", "0.5px")
                         .attr("d", () => {
-                          var data = "M" + xt(d.values[i].date) + "," + visina;
+                          var data = "M" + xt(d.values[i].date) + "," + height;
                           data += " " + xt(d.values[i].date) + "," + 0;
                           return data;
                         });
@@ -536,7 +513,7 @@ export class ChartsComponent implements OnInit {
   
 
 
-
+/* 
   public najdiMaxPoY(datuma: Date[]): number {
     var bisektor = d3.bisector((d: any) => { return d.date }).left;
     var maxY = 0;
@@ -550,6 +527,6 @@ export class ChartsComponent implements OnInit {
 
 
     return maxY
-  }
+  } */
 }
 
