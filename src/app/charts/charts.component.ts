@@ -396,13 +396,14 @@ export class ChartsComponent implements OnInit {
       yMin = + d3.min(vrednosti.map(d => {
         return d3.min(d)
       }))
+      
+      n = (minYLeft*maxYRight + minYRight*maxYLeft)/ (maxYLeft - minYLeft)
 
-      k = (yMax / maxYRight)
-      var y2Max = maxYRight - ((maxYRight - minYRight) * k),
-        y2Min = minYRight + ((maxYRight - minYRight) * k)
+      k = (maxYRight- n)/maxYLeft
+
 
       yt.domain([0.9*yMin,1.1* yMax]).range([visina, 0])
-      yt2.domain([yt.domain()[0] / k, yt.domain()[1]]).range([visina, 0])
+      yt2.domain([yt.domain()[0]*k+n, yt.domain()[1]*k+n]).range([visina, 0])
       d3.selectAll('.x').call(xAxis.scale(xt));
       d3.selectAll('.y').call(yAxis.scale(yt));
 
